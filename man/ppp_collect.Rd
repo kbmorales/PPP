@@ -7,7 +7,7 @@
 ppp_collect(version = NULL)
 }
 \arguments{
-\item{version}{either 1 for most revent version or 2 for oldest data. If not provided will ask}
+\item{version}{Either 1 for most recent version or 2 for oldest data. If not provided will ask}
 }
 \description{
 Collect PPP data from DataKind Google Drive
