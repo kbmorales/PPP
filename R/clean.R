@@ -5,7 +5,6 @@
 #' @return A \code{tibble} of PPP loan data, ready for cleaning or analysis.
 #' @export
 #'
-#' @examples
 ppp_read=function(version=NULL) {
   # Ask version of data wanted
   if (is.null(version)) {
@@ -22,7 +21,7 @@ ppp_read=function(version=NULL) {
   )
 
   # set relative directory to search then scan through subdirectories for CSVs
-  csv_dir <- here::here(paste("data/All Data", file_suffix))
+  csv_dir <- here::here(paste("data-raw/All Data", file_suffix))
   cat(sprintf("Looking for data files in: %s\n", csv_dir))
   csv_files <- list.files(csv_dir, full.names = T, recursive = T, pattern = ".*.csv")
 
@@ -54,7 +53,6 @@ ppp_read=function(version=NULL) {
 #' @return A cleaned \code{tibble} of PPP data.
 #' @export
 #'
-#' @examples
 ppp_clean=function(df){
 
   cat('Create unified loan amount / loan range cuts: LoanRange_Unified\n')

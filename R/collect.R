@@ -4,7 +4,6 @@
 #'
 #' @export
 #'
-#' @examples
 ppp_collect = function(version=NULL) {
 
   # Ask version of data wanted
@@ -21,7 +20,7 @@ ppp_collect = function(version=NULL) {
                        "by State"
   )
 
-  cat(paste0("This will save data to ~/data/All Data ",
+  cat(paste0("This will save data to ~/data-raw/All Data ",
              file_suffix,
              "\n"))
   cat('It will download over 100 MB of files.\n')
@@ -51,7 +50,7 @@ ppp_collect = function(version=NULL) {
   cat('Unzipping...\n')
   make_dir("data")
   unzip(temp,
-        exdir = here::here("data"),
+        exdir = here::here("data-raw"),
         overwrite = T)
   unlink(temp)
   cat('Unzip complete.\n')
@@ -64,9 +63,7 @@ ppp_collect = function(version=NULL) {
 #' with PPP data
 #'
 #' @return
-#' @export
 #'
-#' @examples
 naics_collect = function(){
 
   cat("This will save data to ~/data/tidy_data\n")
