@@ -9,7 +9,7 @@ Authors@R:
            comment = c(ORCID = "0000-0003-3357-2542"))
     person(given = "John",
            family = "McCambridge",
-           role = c("aut", "cre"))
+           role = c("aut"))
 Description: Creates a tidied PPP loan database for analysis in R or export
 License: GPL-3
 Encoding: UTF-8
