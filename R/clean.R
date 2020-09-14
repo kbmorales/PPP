@@ -28,7 +28,7 @@ ppp_read=function(version=NULL) {
   # read in each CSV as character values, to allow for a clean import, attach the name of the data source file
   adbs <- purrr::map_df(csv_files,
                         ~readr::read_csv(.x,
-                                  col_types = cols(.default = "c")
+                                  col_types = readr::cols(.default = "c")
                         ) %>%
                           dplyr::mutate(
                             source_file = stringr::str_remove_all(.x, ".*/")
@@ -36,7 +36,7 @@ ppp_read=function(version=NULL) {
   )
 
   # Add in version info
-  adbs=adbs %>% mutate(
+  adbs=adbs %>% dplyr::mutate(
     version=ifelse(version==1,
                    "2020-08-07",
                    "2020-07-06")
@@ -93,6 +93,89 @@ naics_read=function(){
 
   return(naics_df)
 
+}
+
+#' Clean NAICS dataframe for joining with PPP data
+#'
+#' @param naics_df The tibble returned by \code{naics_read()}
+#'
+#' @return A tidied tibble of NAICS codes by year release
+#' @export
+#'
+naics_clean=function(naics_df){
+  ## This will be master list
+  naics_6L = naics %>%
+    dplyr::filter(stringr::str_length(NAICSCode) == 6) %>%
+    dplyr::rename(naics_lvl_5 = Industry) %>%
+    ## Temp joining cols
+    dplyr::mutate(naics_2 = str_trunc(NAICSCode, 2, ellipsis = ""),
+                  naics_3 = str_trunc(NAICSCode, 3, ellipsis = ""),
+                  naics_4 = str_trunc(NAICSCode, 4, ellipsis = ""),
+                  naics_5 = str_trunc(NAICSCode, 5, ellipsis = ""))
+
+  ## Higher level industry codes
+  naics_2L = naics %>%
+    dplyr::filter(
+      stringr::str_length(NAICSCode) == 2 |
+        stringr::str_detect(NAICSCode,"\\d{2}-\\d{2}")) %>% # Find ranges
+    dplyr::rename(naics_2 = NAICSCode,
+                  naics_lvl_1 = Industry)
+
+  ### Handle ranges in naics_2L
+  naics_2L_rng = naics_2L %>%
+    dplyr::filter(
+      stringr::str_detect(naics_2,"\\d{2}-\\d{2}"))
+
+  naics_2L_fix = tibble::tibble(
+    naics_2 = rep(
+      as.character(c(seq(31,33),44,45,48,49)),
+      4),
+    naics_lvl_1 = rep(
+      c(rep("Manufacturing", 3),
+        rep("Retail Trade", 2),
+        rep("Transportation and Warehousing", 2)),
+      4),
+    version=c(rep("2017",7),
+              rep("2012",7),
+              rep("2007",7),
+              rep("2002",7)
+              )
+  )
+
+  naics_2L = naics_2L %>%
+    dplyr::filter(!stringr::str_detect(naics_2,
+                                       "\\d{2}-\\d{2}")) %>%
+    dplyr::bind_rows(naics_2L_fix) %>%
+    dplyr::arrange(dplyr::desc(version), naics_2)
+
+  naics_3L = naics %>%
+    dplyr::filter(stringr::str_length(NAICSCode) == 3) %>%
+    dplyr::rename(naics_3 = NAICSCode,
+                  naics_lvl_2 = Industry)
+
+  naics_4L = naics %>%
+    dplyr::filter(stringr::str_length(NAICSCode) == 4) %>%
+    dplyr::rename(naics_4 = NAICSCode,
+                  naics_lvl_3 = Industry)
+
+  naics_5L = naics %>%
+    dplyr::filter(stringr::str_length(NAICSCode) == 5) %>%
+    dplyr::rename(naics_5 = NAICSCode,
+                  naics_lvl_4 = Industry)
+
+  ## Join together and tidy
+  naics_df = naics_6L %>%
+    dplyr::left_join(naics_2L) %>%
+    dplyr::left_join(naics_3L) %>%
+    dplyr::left_join(naics_4L) %>%
+    dplyr::left_join(naics_5L) %>%
+    dplyr::select(NAICSCode,
+                  naics_lvl_1,
+                  naics_lvl_2,
+                  naics_lvl_3,
+                  naics_lvl_4,
+                  naics_lvl_5,
+                  version)
 }
 
 #' Applies recommended cleaning, see docs for details.
@@ -211,7 +294,7 @@ ppp_clean=function(df){
       is.na(LoanAmount) & LoanRange == "e $150,000-350,000"    ~ as.numeric(  250000),
       TRUE ~ NA_real_))
 
-  # Coercions
+  # TODO Coercions
 
   return(adbs)
 

@@ -29,6 +29,7 @@ Imports:
     readr,
     readxl,
     stringr,
+    tibble,
     tidyr,
     utils
     
