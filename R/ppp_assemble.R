@@ -25,6 +25,14 @@ ppp_assemble=function(version=NULL) {
 
   ppp_final=naics_join(ppp_df, naics_df)
 
+  cat("Final PPP data set assembled.\n")
+
+  remove_raw = menu(c("Yes",
+                      "No"),
+                    title = "Would you like to delete the downloaded raw PPP data?")
+
+  if (remove_raw==1) ppp_delete_raw_data()
+
   return(ppp_final)
 
 }
