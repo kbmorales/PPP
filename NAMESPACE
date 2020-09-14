@@ -2,6 +2,7 @@
 
 export("%>%")
 export(naics_clean)
+export(naics_join)
 export(naics_read)
 export(ppp_clean)
 export(ppp_collect)
