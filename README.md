@@ -23,6 +23,14 @@ You can install the development version from
 devtools::install_github("kbmorales/PPP")
 ```
 
+## Assembling PPP data
+
+``` r
+# Note: this function will download over 600MB of data to your local machine,
+# and read a large dataframe into memory!
+ppp_data = ppp_assemble()
+```
+
 ## Data Sources
 
   - Small Business Administration PPP Loan Data:
@@ -30,7 +38,7 @@ devtools::install_github("kbmorales/PPP")
         release](https://sba.app.box.com/s/ahn2exwfebgqruk714v3hnf75qdap3du)
       - [Original
         release](https://sba.app.box.com/s/tvb0v5i57oa8gc6b5dcm9cyw7y2ms6pp)
-  - NAICS code dictionary [US Census NAICS
+  - NAICS code dictionaries [US Census NAICS
     Files](https://www.census.gov/eos/www/naics/downloadables/downloadables.html)
 
 ## PPP Data Dictionary
