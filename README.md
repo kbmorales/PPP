@@ -13,6 +13,10 @@ of Paycheck Protection Program loans issued in 2020.
 The data is too large to share on GitHub, but this package will allow
 you to recreate the data locally.
 
+The work for this package grew out of a project with [DataKind’s DC
+chapter](https://github.com/DataKind-DC/CARES) and the [National Press
+Foundation](https://nationalpress.org/).
+
 ## Installation
 
 You can install the development version from
