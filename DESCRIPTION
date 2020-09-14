@@ -11,7 +11,7 @@ Authors@R: c(
            family = "McCambridge",
            role = c("aut"))
            )
-Description: Creates a tidied PPP loan database for analysis in R or export
+Description: Creates a tidied PPP loan database for analysis in R or exporting.
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
@@ -27,7 +27,9 @@ Imports:
     magrittr,
     purrr,
     readr,
+    readxl,
     stringr,
+    tidyr,
     utils
     
   

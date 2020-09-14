@@ -46,6 +46,55 @@ ppp_read=function(version=NULL) {
 
 }
 
+#' Read in NAICS index files as single dataframe
+#'
+#' @return A tibble of NAICS codes
+#' @export
+#'
+naics_read=function(){
+  datapath="data-raw/naics"
+  naics_files=list.files(here::here(datapath))
+
+  # 2017
+  for(i in 4:2){
+    assign(
+      paste0("naics",stringr::str_extract(naics_files[i],
+                                          "\\d+")),
+      suppressMessages(
+        readxl::read_excel(here::here(datapath,
+                                      naics_files[i]),
+                           skip=2,
+                           col_names = F) %>%
+          dplyr::select(NAICSCode=2,
+                        Industry=3) %>%
+          dplyr::mutate(version=stringr::str_extract(naics_files[i],
+                                                     "\\d+"))
+      )
+    )
+  }
+
+  # 2002 text file
+  naics2002=suppressMessages(
+    readr::read_tsv(here::here(datapath,
+                               naics_files[1]),
+                    skip=7,
+                    col_names = F) %>%
+      tidyr::separate(X1,
+                      into=c("NAICSCode",
+                             "Industry"),
+                      sep='\\s+',
+                      extra='merge') %>%
+      dplyr::mutate(version="2002")
+  )
+
+  naics_df=do.call(rbind,
+                   mget(rev(ls(pattern="naics\\d+")))
+  )
+
+  return(naics_df)
+
+}
+
 #' Applies recommended cleaning, see docs for details.
 #'
 #' @param df The PPP dataframe

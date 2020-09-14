@@ -93,7 +93,8 @@ naics_collect=function(){
                                   naics_helper$year[i],
                                   naics_helper$ext[i]
                                   )
-                )
+                           ),
+                mode="wb"
                 )
   }
   cat('NAICS index files downloaded.\n')
