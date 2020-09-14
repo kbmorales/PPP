@@ -47,33 +47,47 @@ ppp_data = ppp_assemble()
 
 ## PPP Data Dictionary
 
-There are two versions of the PPP data released. Notes for each are
-below:
+Though there are two versions of the PPP data released, both will have
+the same final structure as detailed below. The main structual
+difference between these versions is the removal of a `JobsRetained`
+variable, and the addition of `JobsReported`. Whether or not this is a
+simple semantic change is unknown at this point.
 
-### 0808 Structure
+The final PPP dataset output by `ppp_assemble()` will contain the
+following columns:
 
-Rows: 5,212,128 (0808 dataset)
-
-### 0706 Structure
-
-Rows: 4,885,388 (0706 dataset)
-
-| variable      | n Missing | % Missing |                        Validation Notes |
-| :------------ | --------: | --------: | --------------------------------------: |
-| LoanRange     |   4224170 |      86.5 |                               see notes |
-| BusinessName  |   4224171 |      86.5 |   no values for loan amounts under 150K |
-| Address       |   4224170 |      86.5 |   no values for loan amounts under 150K |
-| City          |         1 |       0.0 |                               see notes |
-| State         |         0 |       0.0 |                               see notes |
-| Zip           |       224 |       0.0 |                               see notes |
-| NAICSCode     |    133527 |       2.7 |                      validation pending |
-| BusinessType  |      4723 |       0.1 |                                         |
-| RaceEthnicity |         0 |       0.0 |                      89.3% “Unanswered” |
-| Gender        |         0 |       0.0 |                      77.7% “Unanswered” |
-| Veteran       |         0 |       0.0 |                      84.7% “Unanswered” |
-| NonProfit     |   4703708 |      96.3 |                               see notes |
-| JobsRetained  |    324122 |       6.6 |                               see notes |
-| DateApproved  |         0 |       0.0 | earliest: 2020-04-03 latest: 2020-06-30 |
-| Lender        |         0 |       0.0 |                                         |
-| CD            |         0 |       0.0 |                                         |
-| LoanAmount    |    661218 |      13.5 |    no values for loan amounts over 150K |
+| variable              | original |                                 notes |
+| :-------------------- | -------: | ------------------------------------: |
+| LoanRange             |      Yes | no values for loan amounts under 150K |
+| BusinessName          |      Yes | no values for loan amounts under 150K |
+| Address               |      Yes | no values for loan amounts under 150K |
+| City                  |      Yes |                                       |
+| State                 |      Yes |                                       |
+| Zip                   |      Yes |                                       |
+| NAICSCode             |      Yes |                                       |
+| BusinessType          |      Yes |                                       |
+| RaceEthnicity         |      Yes |                    89.3% “Unanswered” |
+| Gender                |      Yes |                    77.7% “Unanswered” |
+| Veteran               |      Yes |                    84.7% “Unanswered” |
+| NonProfit             |      Yes |                                       |
+| JobsRetained          |      Yes |            only in 2020-07-06 release |
+| JobsReported          |      Yes |            only in 2020-08-08 release |
+| DateApproved          |      Yes |                                       |
+| Lender                |      Yes |                                       |
+| CD                    |      Yes |                                       |
+| LoanAmount            |      Yes |  no values for loan amounts over 150K |
+| source\_file          |       No |   file name for where data was pulled |
+| version               |       No |              release date of PPP data |
+| LoanRange\_Unified    |       No |      Loan ranges regardless of amount |
+| JobsRetained\_Grouped |       No |    brackets for \# of ‘jobs retained’ |
+| JobsReported\_Grouped |       No |    brackets for \# of ‘jobs reported’ |
+| LoanRangeMin          |       No |           minimum possible loan value |
+| LoanRangeMax          |       No |           maximum possible loan value |
+| LoanRangeMid          |       No |           middle estimated loan value |
+| naics\_lvl\_1         |       No |     Most general NAICS industry class |
+| naics\_lvl\_2         |       No |     Second level NAICS industry class |
+| naics\_lvl\_3         |       No |      Third level NAICS industry class |
+| naics\_lvl\_4         |       No |      Forth level NAICS industry class |
+| naics\_lvl\_5         |       No |    Most specific NAICS industry class |
+| NAICS\_version        |       No | version of NAICS where code was found |
+| NAICS\_valid          |       No |               was NAICS code matched? |
