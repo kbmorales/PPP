@@ -24,7 +24,10 @@ Depends:
 Imports:
     dplyr,
     here,
+    magrittr,
     purrr,
     readr,
-    stringr
+    stringr,
+    utils
+    
   

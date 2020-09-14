@@ -162,6 +162,8 @@ ppp_clean=function(df){
       is.na(LoanAmount) & LoanRange == "e $150,000-350,000"    ~ as.numeric(  250000),
       TRUE ~ NA_real_))
 
+  # Coercions
+
   return(adbs)
 
 }

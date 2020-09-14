@@ -48,40 +48,53 @@ ppp_collect = function(version=NULL) {
                 mode="wb")
   cat('Download complete.\n')
   cat('Unzipping...\n')
-  make_dir("data")
+  make_dir("data-raw")
   unzip(temp,
         exdir = here::here("data-raw"),
         overwrite = T)
   unlink(temp)
   cat('Unzip complete.\n')
 
+  # Call NAICS downloader
+  naics_collect()
+
 }
 
-#' Download NAICS code
+#' Downloads raw NAICS legends from US Census website
 #'
-#' Downloads final NAICS file from DataKind Google Drive ready for joining
-#' with PPP data
 #'
-#' @return
-#'
-naics_collect = function(){
+naics_collect=function(){
+  # Download from
+  # https://www.census.gov/eos/www/naics/downloadables/downloadables.html
 
-  cat("This will save data to ~/data/tidy_data\n")
-  # cat('It will download over 600 MB of files.\n')
-  cat('Any existing files will be overwritten.\n')
+  naics_url_2017='https://www.census.gov/eos/www/naics/2017NAICS/2-6%20digit_2017_Codes.xlsx'
+  naics_url_2012='https://www.census.gov/eos/www/naics/2012NAICS/2-digit_2012_Codes.xls'
+  naics_url_2007='https://www.census.gov/eos/www/naics/reference_files_tools/2007/naics07.xls'
+  naics_url_2002='https://www.census.gov/eos/www/naics/reference_files_tools/2002/naics_2_6_02.txt'
 
-  proceed = menu(c("Yes", "Cancel"),
-                 title = "Proceed?")
+  naics_urls=c(naics_url_2017,
+               naics_url_2012,
+               naics_url_2007,
+               naics_url_2002)
 
-  if (proceed!=1) stop("Canceling download.")
+  # Helper dataframe
+  naics_helper=data.frame(naics_urls,
+                          year=c(2017,2012,2007,2002)) %>%
+    dplyr::mutate(ext=stringr::str_extract(naics_urls,
+                                           "\\.\\w+$"))
 
-  datapath = 'data/tidy_data'
-  if (!dir.exists(datapath)) dir.create(datapath,recursive = T)
 
-  # Search for shared folder -- takes a minute
-  drive_download(drive_get("adbs_naics.csv"),
-                 path = file.path("data",
-                                  "tidy_data",
-                                  "naics_clean.csv"),
-                 overwrite = T)
+  cat('Downloading NAICS index files from US Census...\n')
+  make_dir("data-raw/naics")
+  for(i in seq_along(naics_helper$naics_urls)){
+  download.file(naics_urls[i],
+                here::here("data-raw/naics",
+                           paste0("naics_",
+                                  naics_helper$year[i],
+                                  naics_helper$ext[i]
+                                  )
+                )
+                )
+  }
+  cat('NAICS index files downloaded.\n')
 }
