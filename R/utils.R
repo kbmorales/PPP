@@ -2,7 +2,9 @@
 make_dir=function(datapath){
   if (!dir.exists(datapath)) {
     cat("Creating path", paste0("./",datapath,"/\n"))
-    dir.create(here::here(datapath), recursive = T)
+    suppressWarnings(
+      dir.create(here::here(datapath), recursive = T)
+    )
   }
 }
 

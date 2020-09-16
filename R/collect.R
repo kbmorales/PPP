@@ -54,10 +54,6 @@ ppp_collect = function(version=NULL) {
         overwrite = T)
   unlink(temp)
   cat('Unzip complete.\n')
-
-  # Call NAICS downloader
-  naics_collect()
-
 }
 
 #' Downloads raw NAICS legends from US Census website

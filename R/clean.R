@@ -201,65 +201,65 @@ naics_join=function(ppp_df, naics_df){
   # Some of the 6-digit NAICS codes in the PPP loan data don't match up to the
   # 2017 NAICS code
 
-  naics2017=naics_df %>%
+  naics2017 <- naics_df %>%
     dplyr::filter(NAICS_version=="2017")
-  naics2012=naics_df %>%
+  naics2012 <- naics_df %>%
     dplyr::filter(NAICS_version=="2012")
-  naics2007=naics_df %>%
+  naics2007 <- naics_df %>%
     dplyr::filter(NAICS_version=="2007")
-  naics2002=naics_df %>%
+  naics2002 <- naics_df %>%
     dplyr::filter(NAICS_version=="2002")
 
   # 2017 filter joins
-  ppp_naics2017_good=ppp_df %>%
+  ppp_naics2017_good <- ppp_df %>%
     dplyr::inner_join(naics2017,
                       by = "NAICSCode")
-  ppp_naics2017_fails=ppp_df %>%
+  ppp_naics2017_fails <- ppp_df %>%
     # Filter to those that don't join with 2017 codes
     dplyr::anti_join(naics2017,
                      by = "NAICSCode")
 
   # 2012 filter joins
-  ppp_naics2012_good=ppp_naics2017_fails %>%
+  ppp_naics2012_good <- ppp_naics2017_fails %>%
     dplyr::inner_join(naics2012,
                       by = "NAICSCode")
-  ppp_naics2012_fails=ppp_naics2017_fails %>%
+  ppp_naics2012_fails <- ppp_naics2017_fails %>%
     # Filter to those that don't join with 2017 codes
     dplyr::anti_join(naics2012,
                      by = "NAICSCode")
 
   # 2007 filter joins
-  ppp_naics2007_good=ppp_naics2012_fails %>%
+  ppp_naics2007_good <- ppp_naics2012_fails %>%
     dplyr::inner_join(naics2007,
                       by = "NAICSCode")
-  ppp_naics2007_fails=ppp_naics2012_fails %>%
+  ppp_naics2007_fails <- ppp_naics2012_fails %>%
     # Filter to those that don't join with 2017 codes
     dplyr::anti_join(naics2007,
                      by = "NAICSCode")
 
   # 2002 filter joins
-  ppp_naics2002_good=ppp_naics2007_fails %>%
+  ppp_naics2002_good <- ppp_naics2007_fails %>%
     dplyr::inner_join(naics2002,
                       by = "NAICSCode")
-  ppp_naics2002_fails=ppp_naics2007_fails %>%
+  ppp_naics2002_fails <- ppp_naics2007_fails %>%
     # Filter to those that don't join with 2017 codes
     dplyr::anti_join(naics2002,
                      by = "NAICSCode")
 
   # Take final fails and append NAs
-  ppp_naics2002_fails=ppp_naics2002_fails %>%
+  ppp_naics2002_fails <- ppp_naics2002_fails %>%
     dplyr::left_join(naics2017,
                      by = "NAICSCode") %>%
     dplyr::mutate(NAICS_valid=F)
 
-  naics_good=rbind(ppp_naics2017_good,
+  naics_good <- rbind(ppp_naics2017_good,
         ppp_naics2012_good,
         ppp_naics2007_good,
         ppp_naics2002_good
         ) %>%
     dplyr::mutate(NAICS_valid=T)
 
-  final_df=rbind(naics_good,ppp_naics2002_fails)
+  final_df <- rbind(naics_good,ppp_naics2002_fails)
 
   return(final_df)
 
@@ -274,21 +274,52 @@ naics_join=function(ppp_df, naics_df){
 #'
 ppp_clean=function(df){
 
+  # Coercions
+  cat('Coercing variables...\n')
+  adbs <- suppressWarnings(
+    df %>%
+      dplyr::mutate(
+        # Logicals
+        NonProfit=dplyr::case_when(NonProfit=="Y"~T,
+                                   NonProfit=="N"~F,
+                                   TRUE ~ NA),
+        # Dates
+        DateApproved=as.Date(DateApproved,
+                             format="%m/%d/%Y"),
+        # Numeric
+        LoanAmount=as.numeric(LoanAmount)
+      )
+    )
+
+  if("JobsReported" %in% colnames(adbs)) {
+    adbs <- suppressWarnings(
+      adbs %>%
+        dplyr::mutate(JobsReported=as.numeric(JobsReported))
+    )
+  }
+
+  if("JobsRetained" %in% colnames(adbs)) {
+    adbs <- suppressWarnings(
+      adbs %>%
+        dplyr::mutate(JobsRetained=as.numeric(JobsRetained))
+    )
+  }
+
   cat('Create unified loan amount / loan range cuts: LoanRange_Unified\n')
-  adbs <- df %>%
+  adbs <- adbs %>%
     dplyr::mutate(LoanRange_Unified = dplyr::case_when(
       !is.na(LoanRange) ~ LoanRange,
-      is.na(LoanRange) & as.numeric(LoanAmount) > 125000 & as.numeric(LoanAmount) <= 150000 ~ "f $125,000 - $150,000",
-      is.na(LoanRange) & as.numeric(LoanAmount) > 100000 & as.numeric(LoanAmount) <= 125000 ~ "g $100,000 - $125,000",
-      is.na(LoanRange) & as.numeric(LoanAmount) >  75000 & as.numeric(LoanAmount) <= 100000 ~ "h  $75,000 - $100,000",
-      is.na(LoanRange) & as.numeric(LoanAmount) >  50000 & as.numeric(LoanAmount) <=  75000 ~ "i  $50,000 -  $75,000",
-      is.na(LoanRange) & as.numeric(LoanAmount) >  25000 & as.numeric(LoanAmount) <=  50000 ~ "j  $25,000 -  $50,000",
-      is.na(LoanRange) & as.numeric(LoanAmount) >   1000 & as.numeric(LoanAmount) <=  25000 ~ "k   $1,000 -  $25,000",
-      is.na(LoanRange) & as.numeric(LoanAmount) >    100 & as.numeric(LoanAmount) <=   1000 ~ "l     $100 -    $1000",
-      is.na(LoanRange) & as.numeric(LoanAmount) >     10 & as.numeric(LoanAmount) <=    100 ~ "m      $10 -     $100",
-      is.na(LoanRange) & as.numeric(LoanAmount) >      0 & as.numeric(LoanAmount) <=     10 ~ "n           Up to $10",
-      is.na(LoanRange) & as.numeric(LoanAmount) ==     0                                    ~ "o                Zero",
-      is.na(LoanRange) & as.numeric(LoanAmount) <      0                                    ~ "p      Less than Zero",
+      is.na(LoanRange) & LoanAmount > 125000 & LoanAmount <= 150000 ~ "f $125,000 - $150,000",
+      is.na(LoanRange) & LoanAmount > 100000 & LoanAmount <= 125000 ~ "g $100,000 - $125,000",
+      is.na(LoanRange) & LoanAmount >  75000 & LoanAmount <= 100000 ~ "h  $75,000 - $100,000",
+      is.na(LoanRange) & LoanAmount >  50000 & LoanAmount <=  75000 ~ "i  $50,000 -  $75,000",
+      is.na(LoanRange) & LoanAmount >  25000 & LoanAmount <=  50000 ~ "j  $25,000 -  $50,000",
+      is.na(LoanRange) & LoanAmount >   1000 & LoanAmount <=  25000 ~ "k   $1,000 -  $25,000",
+      is.na(LoanRange) & LoanAmount >    100 & LoanAmount <=   1000 ~ "l     $100 -    $1000",
+      is.na(LoanRange) & LoanAmount >     10 & LoanAmount <=    100 ~ "m      $10 -     $100",
+      is.na(LoanRange) & LoanAmount >      0 & LoanAmount <=     10 ~ "n           Up to $10",
+      is.na(LoanRange) & LoanAmount ==     0                        ~ "o                Zero",
+      is.na(LoanRange) & LoanAmount <      0                        ~ "p      Less than Zero",
       TRUE ~ "Unknown"))
 
 
@@ -302,18 +333,18 @@ ppp_clean=function(df){
     cat('Create unified jobs reported cuts: JobsReported_Grouped\n')
     adbs <- adbs %>%
       dplyr::mutate(JobsReported_Grouped = dplyr::case_when(
-        as.numeric(JobsReported) > 400 & as.numeric(JobsReported) <= 500 ~ "a 400 - 500",
-        as.numeric(JobsReported) > 300 & as.numeric(JobsReported) <= 400 ~ "b 300 - 400",
-        as.numeric(JobsReported) > 200 & as.numeric(JobsReported) <= 300 ~ "c 200 - 300",
-        as.numeric(JobsReported) > 100 & as.numeric(JobsReported) <= 200 ~ "d 100 - 200",
-        as.numeric(JobsReported) >  50 & as.numeric(JobsReported) <= 100 ~ "e  50 - 100",
-        as.numeric(JobsReported) >  25 & as.numeric(JobsReported) <=  50 ~ "f  25 -  50",
-        as.numeric(JobsReported) >  10 & as.numeric(JobsReported) <=  25 ~ "g  10 -  25",
-        as.numeric(JobsReported) >   5 & as.numeric(JobsReported) <=  10 ~ "h   5 -  10",
-        as.numeric(JobsReported) >   1 & as.numeric(JobsReported) <=   5 ~ "i   2 -   5",
-        as.numeric(JobsReported) >   0 & as.numeric(JobsReported) <=   1 ~ "j         1",
-        as.numeric(JobsReported) ==     0                                ~ "k      Zero",
-        as.numeric(JobsReported) <      0                                ~ "l  Negative",
+        JobsReported > 400 & JobsReported <= 500 ~ "a 400 - 500",
+        JobsReported > 300 & JobsReported <= 400 ~ "b 300 - 400",
+        JobsReported > 200 & JobsReported <= 300 ~ "c 200 - 300",
+        JobsReported > 100 & JobsReported <= 200 ~ "d 100 - 200",
+        JobsReported >  50 & JobsReported <= 100 ~ "e  50 - 100",
+        JobsReported >  25 & JobsReported <=  50 ~ "f  25 -  50",
+        JobsReported >  10 & JobsReported <=  25 ~ "g  10 -  25",
+        JobsReported >   5 & JobsReported <=  10 ~ "h   5 -  10",
+        JobsReported >   1 & JobsReported <=   5 ~ "i   2 -   5",
+        JobsReported >   0 & JobsReported <=   1 ~ "j         1",
+        JobsReported ==  0                       ~ "k      Zero",
+        JobsReported <   0                       ~ "l  Negative",
         is.na(JobsReported) ~ NA_character_,
         TRUE ~ "Unknown"))
 
@@ -326,18 +357,18 @@ ppp_clean=function(df){
     cat('Create unified jobs retrained cuts: JobsRetained_Grouped\n')
     adbs = adbs %>%
       dplyr::mutate(JobsRetained_Grouped = dplyr::case_when(
-        as.numeric(JobsRetained) > 400 & as.numeric(JobsRetained) <= 500 ~ "a 400 - 500",
-        as.numeric(JobsRetained) > 300 & as.numeric(JobsRetained) <= 400 ~ "b 300 - 400",
-        as.numeric(JobsRetained) > 200 & as.numeric(JobsRetained) <= 300 ~ "c 200 - 300",
-        as.numeric(JobsRetained) > 100 & as.numeric(JobsRetained) <= 200 ~ "d 100 - 200",
-        as.numeric(JobsRetained) >  50 & as.numeric(JobsRetained) <= 100 ~ "e  50 - 100",
-        as.numeric(JobsRetained) >  25 & as.numeric(JobsRetained) <=  50 ~ "f  25 -  50",
-        as.numeric(JobsRetained) >  10 & as.numeric(JobsRetained) <=  25 ~ "g  10 -  25",
-        as.numeric(JobsRetained) >   5 & as.numeric(JobsRetained) <=  10 ~ "h   5 -  10",
-        as.numeric(JobsRetained) >   1 & as.numeric(JobsRetained) <=   5 ~ "i   2 -   5",
-        as.numeric(JobsRetained) >   0 & as.numeric(JobsRetained) <=   1 ~ "j         1",
-        as.numeric(JobsRetained) ==     0                                ~ "k      Zero",
-        as.numeric(JobsRetained) <      0                                ~ "l  Negative",
+        JobsRetained > 400 & JobsRetained <= 500 ~ "a 400 - 500",
+        JobsRetained > 300 & JobsRetained <= 400 ~ "b 300 - 400",
+        JobsRetained > 200 & JobsRetained <= 300 ~ "c 200 - 300",
+        JobsRetained > 100 & JobsRetained <= 200 ~ "d 100 - 200",
+        JobsRetained >  50 & JobsRetained <= 100 ~ "e  50 - 100",
+        JobsRetained >  25 & JobsRetained <=  50 ~ "f  25 -  50",
+        JobsRetained >  10 & JobsRetained <=  25 ~ "g  10 -  25",
+        JobsRetained >   5 & JobsRetained <=  10 ~ "h   5 -  10",
+        JobsRetained >   1 & JobsRetained <=   5 ~ "i   2 -   5",
+        JobsRetained >   0 & JobsRetained <=   1 ~ "j         1",
+        JobsRetained ==  0                       ~ "k      Zero",
+        JobsRetained <   0                       ~ "l  Negative",
         is.na(JobsRetained) ~ NA_character_,
         TRUE ~ "Unknown")
         )
@@ -351,53 +382,35 @@ ppp_clean=function(df){
   cat('Creating minimum loan values: LoanRangeMin\n')
   adbs <- adbs %>%
     dplyr::mutate(LoanRangeMin = dplyr::case_when(
-      !is.na(LoanAmount) ~ as.numeric(LoanAmount),
-      is.na(LoanAmount) & LoanRange == "a $5-10 million"       ~ as.numeric( 5000000),
-      is.na(LoanAmount) & LoanRange == "b $2-5 million"        ~ as.numeric( 2000000),
-      is.na(LoanAmount) & LoanRange == "c $1-2 million"        ~ as.numeric( 1000000),
-      is.na(LoanAmount) & LoanRange == "d $350,000-1 million"  ~ as.numeric(  350000),
-      is.na(LoanAmount) & LoanRange == "e $150,000-350,000"    ~ as.numeric(  150000),
+      !is.na(LoanAmount) ~ LoanAmount,
+      is.na(LoanAmount) & LoanRange == "a $5-10 million"       ~ 5000000,
+      is.na(LoanAmount) & LoanRange == "b $2-5 million"        ~ 2000000,
+      is.na(LoanAmount) & LoanRange == "c $1-2 million"        ~ 1000000,
+      is.na(LoanAmount) & LoanRange == "d $350,000-1 million"  ~ 350000,
+      is.na(LoanAmount) & LoanRange == "e $150,000-350,000"    ~ 150000,
       TRUE ~ NA_real_))
 
   cat('Creating maximum loan values: LoanRangeMax\n')
   adbs <- adbs %>%
     dplyr::mutate(LoanRangeMax = dplyr::case_when(
-      !is.na(LoanAmount) ~ as.numeric(LoanAmount),
-      is.na(LoanAmount) & LoanRange == "a $5-10 million"       ~ as.numeric(10000000),
-      is.na(LoanAmount) & LoanRange == "b $2-5 million"        ~ as.numeric( 5000000),
-      is.na(LoanAmount) & LoanRange == "c $1-2 million"        ~ as.numeric( 2000000),
-      is.na(LoanAmount) & LoanRange == "d $350,000-1 million"  ~ as.numeric( 1000000),
-      is.na(LoanAmount) & LoanRange == "e $150,000-350,000"    ~ as.numeric(  350000),
+      !is.na(LoanAmount) ~ LoanAmount,
+      is.na(LoanAmount) & LoanRange == "a $5-10 million"       ~ 10000000,
+      is.na(LoanAmount) & LoanRange == "b $2-5 million"        ~ 5000000,
+      is.na(LoanAmount) & LoanRange == "c $1-2 million"        ~ 2000000,
+      is.na(LoanAmount) & LoanRange == "d $350,000-1 million"  ~ 1000000,
+      is.na(LoanAmount) & LoanRange == "e $150,000-350,000"    ~ 350000,
       TRUE ~ NA_real_))
 
   cat('Creating midpoint loan values: LoanRangeMid\n')
   adbs <- adbs %>%
     dplyr::mutate(LoanRangeMid = dplyr::case_when(
-      !is.na(LoanAmount) ~ as.numeric(LoanAmount),
-      is.na(LoanAmount) & LoanRange == "a $5-10 million"       ~ as.numeric( 7500000),
-      is.na(LoanAmount) & LoanRange == "b $2-5 million"        ~ as.numeric( 3500000),
-      is.na(LoanAmount) & LoanRange == "c $1-2 million"        ~ as.numeric( 1500000),
-      is.na(LoanAmount) & LoanRange == "d $350,000-1 million"  ~ as.numeric(  675000),
-      is.na(LoanAmount) & LoanRange == "e $150,000-350,000"    ~ as.numeric(  250000),
+      !is.na(LoanAmount) ~ LoanAmount,
+      is.na(LoanAmount) & LoanRange == "a $5-10 million"       ~ 7500000,
+      is.na(LoanAmount) & LoanRange == "b $2-5 million"        ~ 3500000,
+      is.na(LoanAmount) & LoanRange == "c $1-2 million"        ~ 1500000,
+      is.na(LoanAmount) & LoanRange == "d $350,000-1 million"  ~ 675000,
+      is.na(LoanAmount) & LoanRange == "e $150,000-350,000"    ~ 250000,
       TRUE ~ NA_real_))
-
-  # Coercions
-  adbs=adbs %>%
-    suppressWarnings(
-    dplyr::mutate(
-      # Logicals
-      NonProfit=dplyr::case_when(NonProfit=="Y"~T,
-                                 NonProfit=="N"~F,
-                                 TRUE ~ NA),
-      # Dates
-      DateApproved=as.Date(DateApproved,
-                           format="%m/%d/%Y"),
-      # Numeric
-      LoanAmount=as.numeric(LoanAmount),
-      JobsReported=as.numeric(JobsReported),
-      JobsRetained=as.numeric(JobsRetained)
-    )
-    )
 
   return(adbs)
 

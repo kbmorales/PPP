@@ -16,12 +16,44 @@ ppp_assemble=function(version=NULL) {
                    title = "Which version of the PPP data would you like to ingest?")
   }
 
-  ppp_collect(version)
-  naics_collect()
+  # Download
+
+  # Check if PPP data exists
+  if(version==1 &
+     length(list.files(here::here("data-raw", "All Data 0808"))) > 0 |
+     version==2 &
+     length(list.files(here::here("data-raw", "All Data by State"))) > 0 ) {
+    cat("Found raw PPP data files.\n")
+    redownload = menu(c("Use previously downloaded data",
+                        "Redownload the data"),
+                      title = "Would you like to use those files?")
+    if (redownload==2) {
+      ppp_collect(version)
+    }
+  } else {
+    ppp_collect(version)
+  }
+
+  # Check if NAICS data exists
+  if(length(list.files(here::here("data-raw", "naics"))) > 0) {
+    cat("Found raw NAICS data files.\n")
+    redownload = menu(c("Use previously downloaded data",
+                        "Redownload the data"),
+                      title = "Would you like to use those files?")
+    if (redownload==2) {
+      naics_collect()
+    }
+  } else {
+    naics_collect()
+  }
+
+  # Read
 
   naics_df=naics_read() %>% naics_clean()
 
   ppp_df=ppp_read(version) %>% ppp_clean()
+
+  # Join
 
   ppp_final=naics_join(ppp_df, naics_df)
 
