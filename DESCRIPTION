@@ -1,6 +1,6 @@
 Package: PPP
 Title: Prepare PPP Data For Analysis
-Version: 0.0.0.9000
+Version: 0.0.1.0000
 Authors@R: c(
     person(given = "Ken",
            family = "Morales",
