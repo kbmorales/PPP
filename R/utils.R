@@ -8,6 +8,9 @@ make_dir=function(datapath){
   }
 }
 
+#' @importFrom rlang .data
+NULL
+
 #' Pipe operator
 #'
 #' See \code{magrittr::\link[magrittr:pipe]{\%>\%}} for details.

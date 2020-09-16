@@ -79,7 +79,7 @@ naics_read=function(){
                                naics_files[1]),
                     skip=7,
                     col_names = F) %>%
-      tidyr::separate(X1,
+      tidyr::separate(.data$X1,
                       into=c("NAICSCode",
                              "Industry"),
                       sep='\\s+',
@@ -105,26 +105,26 @@ naics_read=function(){
 naics_clean=function(naics_df){
   ## This will be master list
   naics_6L = naics_df %>%
-    dplyr::filter(stringr::str_length(NAICSCode) == 6) %>%
-    dplyr::rename(naics_lvl_5 = Industry) %>%
+    dplyr::filter(stringr::str_length(.data$NAICSCode) == 6) %>%
+    dplyr::rename(naics_lvl_5 = .data$Industry) %>%
     ## Temp joining cols
-    dplyr::mutate(naics_2 = stringr::str_trunc(NAICSCode, 2, ellipsis = ""),
-                  naics_3 = stringr::str_trunc(NAICSCode, 3, ellipsis = ""),
-                  naics_4 = stringr::str_trunc(NAICSCode, 4, ellipsis = ""),
-                  naics_5 = stringr::str_trunc(NAICSCode, 5, ellipsis = ""))
+    dplyr::mutate(naics_2 = stringr::str_trunc(.data$NAICSCode, 2, ellipsis = ""),
+                  naics_3 = stringr::str_trunc(.data$NAICSCode, 3, ellipsis = ""),
+                  naics_4 = stringr::str_trunc(.data$NAICSCode, 4, ellipsis = ""),
+                  naics_5 = stringr::str_trunc(.data$NAICSCode, 5, ellipsis = ""))
 
   ## Higher level industry codes
   naics_2L = naics_df %>%
     dplyr::filter(
-      stringr::str_length(NAICSCode) == 2 |
-        stringr::str_detect(NAICSCode,"\\d{2}-\\d{2}")) %>% # Find ranges
-    dplyr::rename(naics_2 = NAICSCode,
-                  naics_lvl_1 = Industry)
+      stringr::str_length(.data$NAICSCode) == 2 |
+        stringr::str_detect(.data$NAICSCode,"\\d{2}-\\d{2}")) %>% # Find ranges
+    dplyr::rename(naics_2 = .data$NAICSCode,
+                  naics_lvl_1 = .data$Industry)
 
   ### Handle ranges in naics_2L
   naics_2L_rng = naics_2L %>%
     dplyr::filter(
-      stringr::str_detect(naics_2,"\\d{2}-\\d{2}"))
+      stringr::str_detect(.data$naics_2,"\\d{2}-\\d{2}"))
 
   naics_2L_fix = tibble::tibble(
     naics_2 = rep(
@@ -143,25 +143,25 @@ naics_clean=function(naics_df){
   )
 
   naics_2L = naics_2L %>%
-    dplyr::filter(!stringr::str_detect(naics_2,
+    dplyr::filter(!stringr::str_detect(.data$naics_2,
                                        "\\d{2}-\\d{2}")) %>%
     dplyr::bind_rows(naics_2L_fix) %>%
-    dplyr::arrange(dplyr::desc(NAICS_version), naics_2)
+    dplyr::arrange(dplyr::desc(.data$NAICS_version), .data$naics_2)
 
   naics_3L = naics_df %>%
-    dplyr::filter(stringr::str_length(NAICSCode) == 3) %>%
-    dplyr::rename(naics_3 = NAICSCode,
-                  naics_lvl_2 = Industry)
+    dplyr::filter(stringr::str_length(.data$NAICSCode) == 3) %>%
+    dplyr::rename(naics_3 = .data$NAICSCode,
+                  naics_lvl_2 = .data$Industry)
 
   naics_4L = naics_df %>%
-    dplyr::filter(stringr::str_length(NAICSCode) == 4) %>%
-    dplyr::rename(naics_4 = NAICSCode,
-                  naics_lvl_3 = Industry)
+    dplyr::filter(stringr::str_length(.data$NAICSCode) == 4) %>%
+    dplyr::rename(naics_4 = .data$NAICSCode,
+                  naics_lvl_3 = .data$Industry)
 
   naics_5L = naics_df %>%
-    dplyr::filter(stringr::str_length(NAICSCode) == 5) %>%
-    dplyr::rename(naics_5 = NAICSCode,
-                  naics_lvl_4 = Industry)
+    dplyr::filter(stringr::str_length(.data$NAICSCode) == 5) %>%
+    dplyr::rename(naics_5 = .data$NAICSCode,
+                  naics_lvl_4 = .data$Industry)
 
   ## Join together and tidy
   naics_clean = suppressMessages(
@@ -170,13 +170,13 @@ naics_clean=function(naics_df){
     dplyr::left_join(naics_3L) %>%
     dplyr::left_join(naics_4L) %>%
     dplyr::left_join(naics_5L) %>%
-    dplyr::select(NAICSCode,
-                  naics_lvl_1,
-                  naics_lvl_2,
-                  naics_lvl_3,
-                  naics_lvl_4,
-                  naics_lvl_5,
-                  NAICS_version)
+    dplyr::select(.data$NAICSCode,
+                  .data$naics_lvl_1,
+                  .data$naics_lvl_2,
+                  .data$naics_lvl_3,
+                  .data$naics_lvl_4,
+                  .data$naics_lvl_5,
+                  .data$NAICS_version)
   )
 
   return(naics_clean)
@@ -202,13 +202,13 @@ naics_join=function(ppp_df, naics_df){
   # 2017 NAICS code
 
   naics2017 <- naics_df %>%
-    dplyr::filter(NAICS_version=="2017")
+    dplyr::filter(.data$NAICS_version=="2017")
   naics2012 <- naics_df %>%
-    dplyr::filter(NAICS_version=="2012")
+    dplyr::filter(.data$NAICS_version=="2012")
   naics2007 <- naics_df %>%
-    dplyr::filter(NAICS_version=="2007")
+    dplyr::filter(.data$NAICS_version=="2007")
   naics2002 <- naics_df %>%
-    dplyr::filter(NAICS_version=="2002")
+    dplyr::filter(.data$NAICS_version=="2002")
 
   # 2017 filter joins
   ppp_naics2017_good <- ppp_df %>%
@@ -284,24 +284,24 @@ ppp_clean=function(df){
                                    NonProfit=="N"~F,
                                    TRUE ~ NA),
         # Dates
-        DateApproved=as.Date(DateApproved,
+        DateApproved=as.Date(.data$DateApproved,
                              format="%m/%d/%Y"),
         # Numeric
-        LoanAmount=as.numeric(LoanAmount)
+        LoanAmount=as.numeric(.data$LoanAmount)
       )
     )
 
   if("JobsReported" %in% colnames(adbs)) {
     adbs <- suppressWarnings(
       adbs %>%
-        dplyr::mutate(JobsReported=as.numeric(JobsReported))
+        dplyr::mutate(JobsReported=as.numeric(.data$JobsReported))
     )
   }
 
   if("JobsRetained" %in% colnames(adbs)) {
     adbs <- suppressWarnings(
       adbs %>%
-        dplyr::mutate(JobsRetained=as.numeric(JobsRetained))
+        dplyr::mutate(JobsRetained=as.numeric(.data$JobsRetained))
     )
   }
 

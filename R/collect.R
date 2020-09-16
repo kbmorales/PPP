@@ -3,6 +3,7 @@
 #' @param version Either 1 for most recent version or 2 for oldest data. If not provided will ask
 #'
 #' @export
+#' @importFrom utils download.file menu unzip
 #'
 ppp_collect = function(version=NULL) {
 
