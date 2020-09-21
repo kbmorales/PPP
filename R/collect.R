@@ -55,7 +55,23 @@ ppp_collect = function(version=NULL) {
   unlink(temp)
   cat('Unzip complete.\n')
 
-  # Call NAICS downloader
+# ==============
+#   SUGGESTION, using httr::GET plus a bit of error checking
+begin <- proc.time()
+r  <- httr::GET(url_dl)  %>% httr::stop_for_status()
+end  <- proc.time() - begin
+cat ("Download time ", end[3], "\n")
+
+# if TRUE, returns nothing
+testthat::expect_identical(httr::http_type(r), "application/zip")
+
+# CONTINUE, as before, or uncommnt these lines 
+# make_dir("jim_data")
+# writeBin(httr::content(r, "raw"), "jim.zip")
+# unzip("jim.zip", exdir = here::here("jim_data"), overwrite=T)
+# ==============   END SUGGESTION  =========
+
+# Call NAICS downloader
   naics_collect()
 
 }
